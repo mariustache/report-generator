@@ -189,6 +189,8 @@ class ManagementGenerator(ReportGenerator):
     
     def GetProductSumFromId(self, id_intrare):
         produse_df = DBFParserProduse.GetParser().GetDataWithIdIntrare(id_intrare)
+        if produse_df.empty:
+            return 0
         return produse_df.apply(lambda row: row["CANTITATE"] * row["PRET_VANZ"], axis='columns').sum()
 
     def UpdateSold(self, start_date, stop_date, sold, use_intrari=True, use_iesiri=True):

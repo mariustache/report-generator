@@ -131,3 +131,17 @@ dmypy.json
 # DBF files
 *.DBF
 *.zip
+*.xlsx
+
+#pycache
+*/pycache
+
+# data related
+data/*.xlsx
+data/*.zip
+data/*.cdx
+data/*.dcx
+data/*.dbc
+data/*.dct
+data/*.fpt
+data/*.fdb
