@@ -1,6 +1,7 @@
 import wx
 
 from config.config import ConfigModule
+from data.parser import DBFDatabase
 from data.parser import DBFParserIesiri
 from data.parser import DBFParserIntrari
 from data.parser import DBFParserProduse
@@ -15,9 +16,9 @@ from utils import Info
 if __name__ == "__main__":
     config = ConfigModule()
 
-    parser_iesiri = DBFParserIesiri(config.GetIesiri())
-    parser_intrari = DBFParserIntrari(config.GetIntrari())
-    parser_produse = DBFParserProduse(config.GetProduse())
+    parser_iesiri = DBFParserIesiri(DBFDatabase(config.GetIesiri()))
+    parser_intrari = DBFParserIntrari(DBFDatabase(config.GetIntrari()))
+    parser_produse = DBFParserProduse(DBFDatabase(config.GetProduse()))
 
     start_date = config.GetStartDate()
     sold_precedent = config.GetSoldPrecedent()

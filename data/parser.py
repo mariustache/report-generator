@@ -7,15 +7,34 @@ from utils import Debug
 from utils import Info
 
 
+class Database:
+
+    def __init__(self, name):
+        self.name = name
+
+    # Returns the database as a pandas data frame object
+    def get_db(self, columns):
+        assert "Should be implemented in derived classes"
+
+
+class DBFDatabase(Database):
+
+    def __init__(self, name):
+        super().__init__(name)
+
+    def get_db(self, columns):
+        dbf = DBF(self.name)
+        columns = list(columns)
+        return DataFrame(iter(dbf))[columns]
+
+
 class DBFParser:
     
     FIELDS = list()
     INSTANCE = None
 
-    def __init__(self, dbf_name):
-        dbf = DBF(dbf_name)
-        columns = list(self.FIELDS.keys())
-        self._dataFrame = DataFrame(iter(dbf))[columns]
+    def __init__(self, database):
+        self._dataFrame = database.get_db(self.FIELDS.keys())
 
         # Ensure correct data type in data frame.
         for column_name, data_type in self.FIELDS.items():
@@ -23,7 +42,7 @@ class DBFParser:
             fill_value = ""
             if data_type == "int64" or data_type == "float64":
                 fill_value = 0
-            self._dataFrame[column_name].fillna(fill_value, inplace=True)
+            self._dataFrame[column_name] = self._dataFrame[column_name].fillna(fill_value)
             self._dataFrame[column_name] = self._dataFrame[column_name].astype(data_type)
         # Strip whitespace
         self._dataFrame = self._dataFrame.apply(lambda x: x.str.strip() if isinstance(x, str) else x)
@@ -65,13 +84,13 @@ class DBFParserIesiri(DBFParser):
         "NR_IESIRE": "string",
         "ID_IESIRE": "string",
         "DENUMIRE": "string",
-        "DATA": "datetime64",
+        "DATA": "datetime64[ns]",
         "TOTAL": "float64",
         "NR_BONURI": "int64"
     }
 
-    def __init__(self, dbf_name):
-        DBFParser.__init__(self, dbf_name)
+    def __init__(self, database):
+        DBFParser.__init__(self, database)
         DBFParserIesiri.INSTANCE = self
 
 
@@ -82,13 +101,13 @@ class DBFParserIntrari(DBFParser):
         "NR_NIR": "string",
         "NR_INTRARE": "string",
         "DENUMIRE": "string",
-        "DATA": "datetime64",
+        "DATA": "datetime64[ns]",
         "TOTAL": "float64",
         "TIP": "string"
     }
 
-    def __init__(self, dbf_name):
-        DBFParser.__init__(self, dbf_name)
+    def __init__(self, database):
+        DBFParser.__init__(self, database)
         DBFParserIntrari.INSTANCE = self
 
 
@@ -105,8 +124,8 @@ class DBFParserProduse(DBFParser):
         "PRET_VANZ": "float64"
     }
 
-    def __init__(self, dbf_name):
-        DBFParser.__init__(self, dbf_name)
+    def __init__(self, database):
+        DBFParser.__init__(self, database)
         DBFParserProduse.INSTANCE = self
     
     def GetDataWithIdIntrare(self, id_intrare):

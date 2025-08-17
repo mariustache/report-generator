@@ -136,7 +136,14 @@ dmypy.json
 #pycache
 */pycache
 
+#poetry
+poetry.lock
+
+#firebird
+firebird/*.FDB
+
 # data related
+data/input
 data/*.xlsx
 data/*.zip
 data/*.cdx
@@ -145,3 +152,7 @@ data/*.dbc
 data/*.dct
 data/*.fpt
 data/*.fdb
+
+# output
+output
+output/*

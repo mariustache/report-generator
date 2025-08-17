@@ -1,5 +1,8 @@
 import wx
+import pathlib
 import pandas as pd
+import os
+from datetime import datetime
 
 from data.parser import DBFParser
 from data.parser import DBFParserIntrari
@@ -9,9 +12,11 @@ from data.parser import DBFParserProduse
 from utils import NextDay
 
 
+
 class ReportGenerator:
 
     INSTANCE = None
+    OUTPUT_PATH = f'{pathlib.Path().resolve()}\output'
 
     def __init__(self):
         ReportGenerator.INSTANCE = self
@@ -28,15 +33,16 @@ class ReportGenerator:
 
     def SaveFile(self, df_list):
         pd.set_option('display.expand_frame_repr', False)
-        writer = pd.ExcelWriter(r'D:\git\report_generator\data\\' + self.OUTPUT_FILE)
+        pathlib.Path(ReportGenerator.OUTPUT_PATH).mkdir(parents=True, exist_ok=True)
+        writer = pd.ExcelWriter(f'{ReportGenerator.OUTPUT_PATH}\{self.OUTPUT_FILE}')
         
         _start = 0
         for _df in df_list:
             print(_df)
-            _df.to_excel(writer, self.NAME, startrow=_start)
+            _df.to_excel(writer, startrow=_start)
             _start += len(_df) + 2
 
-        writer.save()
+        writer.close()
 
     @classmethod
     def Instance(cls):
@@ -46,7 +52,7 @@ class ReportGenerator:
 class JournalGenerator(ReportGenerator):
 
     COLUMNS = ["Data", "Documentul (felul, nr.)", "Felul operatiunii (explicatii)", "Incasari (numerar)", "Plati (numerar)", "Plati (alte)"]
-    OUTPUT_FILE = "jurnal_incasari_si_plati.xlsx"
+    OUTPUT_FILE = f"jurnal_incasari_si_plati_{datetime.today().strftime('%Y-%m-%d')}.xlsx"
     NAME = "Jurnal de incasari si plati"
 
     def __init__(self, start_date, plati_numerar=0, plati_alte=0, incasari=0):
@@ -128,7 +134,7 @@ class JournalGenerator(ReportGenerator):
 class ManagementGenerator(ReportGenerator):
     
     COLUMNS = ["Numar document", "Explicatii", "Valoare lei (Marfuri)"]
-    OUTPUT_FILE = "raport_de_gestiune.xlsx"
+    OUTPUT_FILE = f"raport_de_gestiune_{datetime.today().strftime('%Y-%m-%d')}.xlsx"
     NAME = "Raport de gestiune"
 
     def __init__(self, start_date, sold_precedent):
