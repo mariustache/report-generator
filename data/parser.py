@@ -1,6 +1,9 @@
 
 from dbfread import DBF
+from firebird.driver import connect, driver_config
 from pandas import DataFrame
+
+import os
 
 from utils import Error
 from utils import Debug
@@ -28,7 +31,26 @@ class DBFDatabase(Database):
         return DataFrame(iter(dbf))[columns]
 
 
-class DBFParser:
+class FirebirdDatabase(Database):
+
+    def __init__(self, name, config):
+        super().__init__(name)
+        self.config = config
+
+    def get_db(self, columns):
+        driver_config.read(self.config)
+        keys = ",".join(columns)
+
+        with connect('saga', user=f'{os.environ["ISC_USER"]}', password=f'{os.environ["ISC_PASSWORD"]}') as con:
+            cursor = con.cursor()
+            cursor.execute(f'select {keys} from {self.name}')
+
+            _dataFrame = DataFrame(iter(cursor.fetchall()))
+            _dataFrame.columns = columns
+            return _dataFrame
+
+
+class DatabaseParser:
     
     FIELDS = list()
     INSTANCE = None
@@ -74,11 +96,11 @@ class DBFParser:
     @classmethod
     def GetParser(cls):
         if cls.INSTANCE is None:
-            Error("Trying to access instance of {} class, but it does not exist.".format(cls.__name__))
+            Error(f"Trying to access instance of {cls.__name__} class, but it does not exist.")
         return cls.INSTANCE
 
 
-class DBFParserIesiri(DBFParser):
+class ParserIesiri(DatabaseParser):
 
     FIELDS = {
         "NR_IESIRE": "string",
@@ -90,11 +112,11 @@ class DBFParserIesiri(DBFParser):
     }
 
     def __init__(self, database):
-        DBFParser.__init__(self, database)
-        DBFParserIesiri.INSTANCE = self
+        DatabaseParser.__init__(self, database)
+        ParserIesiri.INSTANCE = self
 
 
-class DBFParserIntrari(DBFParser):
+class ParserIntrari(DatabaseParser):
 
     FIELDS = {
         "ID_INTRARE": "string",
@@ -107,11 +129,11 @@ class DBFParserIntrari(DBFParser):
     }
 
     def __init__(self, database):
-        DBFParser.__init__(self, database)
-        DBFParserIntrari.INSTANCE = self
+        DatabaseParser.__init__(self, database)
+        ParserIntrari.INSTANCE = self
 
 
-class DBFParserProduse(DBFParser):
+class ParserProduse(DatabaseParser):
 
     FIELDS = {
         "ID_U": "string",
@@ -125,11 +147,9 @@ class DBFParserProduse(DBFParser):
     }
 
     def __init__(self, database):
-        DBFParser.__init__(self, database)
-        DBFParserProduse.INSTANCE = self
+        DatabaseParser.__init__(self, database)
+        ParserProduse.INSTANCE = self
     
     def GetDataWithIdIntrare(self, id_intrare):
         mask = self._dataFrame["ID_INTRARE"] == id_intrare
         return self._dataFrame.loc[mask]
-
-    

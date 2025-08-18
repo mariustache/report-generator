@@ -4,10 +4,10 @@ import pandas as pd
 import os
 from datetime import datetime
 
-from data.parser import DBFParser
-from data.parser import DBFParserIntrari
-from data.parser import DBFParserIesiri
-from data.parser import DBFParserProduse
+from data.parser import DatabaseParser
+from data.parser import ParserIntrari
+from data.parser import ParserIesiri
+from data.parser import ParserProduse
 
 from utils import NextDay
 
@@ -26,10 +26,10 @@ class ReportGenerator:
         return self._out_df_list
     
     def GetInputDfFromDate(self, _date):
-        return DBFParserIntrari.GetParser().GetDataWithDate(_date)
+        return ParserIntrari.GetParser().GetDataWithDate(_date)
 
     def GetOutputDfFromDate(self, _date):
-        return DBFParserIesiri.GetParser().GetDataWithDate(_date)
+        return ParserIesiri.GetParser().GetDataWithDate(_date)
 
     def SaveFile(self, df_list):
         pd.set_option('display.expand_frame_repr', False)
@@ -122,13 +122,13 @@ class JournalGenerator(ReportGenerator):
         return plati_numerar, plati_alte, incasari
 
     def CreateAlteRow(self, row):
-        return [row["DATA"].strftime("%d-%m-%Y"), row["NR_INTRARE"], "Cheltuieli {}".format(row["DENUMIRE"]), 0, 0, row["TOTAL"]]
+        return [row["DATA"].strftime("%d-%m-%Y"), row["NR_INTRARE"], f"Cheltuieli {row['DENUMIRE']}", 0, 0, row["TOTAL"]]
 
     def CreateNumerarRow(self, row):
-        return [row["DATA"].strftime("%d-%m-%Y"), row["NR_INTRARE"], "Cumparare marfa {}".format(row["DENUMIRE"]), 0, row["TOTAL"], 0]
+        return [row["DATA"].strftime("%d-%m-%Y"), row["NR_INTRARE"], f"Cumparare marfa {row['DENUMIRE']}", 0, row["TOTAL"], 0]
     
     def CreateIncasariRow(self, row):
-        return [row["DATA"].strftime("%d-%m-%Y"), row["NR_IESIRE"], "Vanzare marfa {}".format(row["DENUMIRE"]), row["TOTAL"], 0, 0]
+        return [row["DATA"].strftime("%d-%m-%Y"), row["NR_IESIRE"], f"Vanzare marfa {row['DENUMIRE']}", row["TOTAL"], 0, 0]
 
 
 class ManagementGenerator(ReportGenerator):
@@ -166,7 +166,7 @@ class ManagementGenerator(ReportGenerator):
         while current_date <= stop_date:
             _out_list = list()
             # Add header.
-            _out_list.append(["Data: {}".format(current_date.strftime("%d-%m-%Y")), "Sold precedent", sold])
+            _out_list.append([f"Data: {current_date.strftime('%d-%m-%Y')}", "Sold precedent", sold])
             # Update sold value. Start and stop date are the same: current date.
             sold = self.UpdateSold(current_date, current_date, sold, use_iesiri=False)
             
@@ -194,7 +194,7 @@ class ManagementGenerator(ReportGenerator):
         self.SaveFile(self._out_df_list)
     
     def GetProductSumFromId(self, id_intrare):
-        produse_df = DBFParserProduse.GetParser().GetDataWithIdIntrare(id_intrare)
+        produse_df = ParserProduse.GetParser().GetDataWithIdIntrare(id_intrare)
         if produse_df.empty:
             return 0
         return produse_df.apply(lambda row: row["CANTITATE"] * row["PRET_VANZ"], axis='columns').sum()
@@ -217,7 +217,7 @@ class ManagementGenerator(ReportGenerator):
         return sold
     
     def CreateIntrariRow(self, row):
-        return [row["NR_NIR"], "Cumparare marfa {}".format(row["DENUMIRE"]), self.GetProductSumFromId(row["ID_INTRARE"])]
+        return [row["NR_NIR"], f"Cumparare marfa {row['DENUMIRE']}", self.GetProductSumFromId(row["ID_INTRARE"])]
 
     def CreateIesiriRow(self, row):
-        return [row["NR_IESIRE"], "Vanzare marfa {}".format(row["DENUMIRE"]), row["TOTAL"]]
+        return [row["NR_IESIRE"], f"Vanzare marfa {row['DENUMIRE']}", row["TOTAL"]]

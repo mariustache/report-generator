@@ -133,14 +133,17 @@ dmypy.json
 *.zip
 *.xlsx
 
-#pycache
+# pycache
 */pycache
 
-#poetry
+# poetry
 poetry.lock
 
-#firebird
+# firebird
 firebird/*.FDB
+
+# config
+config/*.cfg
 
 # data related
 data/input

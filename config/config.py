@@ -4,7 +4,7 @@ import configparser
 from utils import Info
 from utils import Error
 
-CONFIG_PATH = "config/config.ini"
+CONFIG_PATH = "config/config.cfg"
 
 
 class ConfigModule:
@@ -17,25 +17,28 @@ class ConfigModule:
 
     def _read(self):
         if not os.path.isfile(CONFIG_PATH):
-            Error("{} file not present.".format(CONFIG_PATH))
+            Error(f"{CONFIG_PATH} file not present.")
             return
 
-        Info("Reading {} data.".format(CONFIG_PATH))
+        Info(f"Reading {CONFIG_PATH} data.")
         self._config.read(CONFIG_PATH)
 
         for section in ConfigModule.SECTIONS:
             if section not in self._config:
-                Error("Section {} does not exist.".format(section))
+                Error(f"Section {section} does not exist.")
     
     def GetDataFromKey(self, section, ini_key):
         if section not in self._config:
-            Error("Section {} does not exist.".format(section))
+            Error(f"Section {section} does not exist.")
         if ini_key not in self._config[section]:
-            Error("Key {} does not exist in section {}.".format(ini_key, section))
+            Error(f"Key {ini_key} does not exist in section {section}.")
         value = self._config[section].get(ini_key)
-        Info("Reading {}/{} from .ini file: {}".format(section, ini_key, value))
+        Info(f"Reading {section}/{ini_key} from .ini file: {value}")
         return value
-    
+
+    def GetFirebirdConfig(self):
+        return "config/firebird.cfg"
+
     def GetIntrari(self):
         return self.GetDataFromKey("Common", "Intrari")
     
@@ -59,5 +62,3 @@ class ConfigModule:
 
     def GetIncasari(self):
         return self.GetDataFromKey("Journal", "Incasari")
-
-

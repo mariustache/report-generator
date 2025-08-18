@@ -147,5 +147,3 @@ class Calendar(wx.Frame):
     def OnDate(self, event):
         self.parent.SetStartDate(self.cal.GetDate())
         self.Close()
-
-
